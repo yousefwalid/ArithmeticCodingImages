@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from collections import OrderedDict
+import time
 
 
 def arith_coding(fileVector, blockSize, probability):
@@ -8,7 +9,7 @@ def arith_coding(fileVector, blockSize, probability):
     cumulative_p_prev = {}
     tags = []
 
-    cum_sum = 0
+    cum_sum = 0.0
     for p in probability:
         cumulative_p[p] = (probability[p] + cum_sum)
         cumulative_p_prev[p] = cum_sum
@@ -16,8 +17,8 @@ def arith_coding(fileVector, blockSize, probability):
 
     idx = 0
     while(idx < len(fileVector)):
-        l = 0
-        u = 1
+        l = 0.0
+        u = 1.0
         for blockNum in range(blockSize):
             letter = fileVector[idx]
             new_l = l + (u-l) * cumulative_p_prev[letter]
@@ -25,18 +26,17 @@ def arith_coding(fileVector, blockSize, probability):
             u = new_u
             l = new_l
             idx += 1
-        tags.append((u+l)/2)
+        tags.append((u+l)/2.0)
 
     return tags
 
 
-img = cv2.imread('test2.jpg', cv2.IMREAD_GRAYSCALE)
-
+img = cv2.imread('forest.jpg', cv2.IMREAD_GRAYSCALE)
 
 dimensions = np.array([img.shape[0], img.shape[1]])  # height x width
 
 img = img.flatten()
-blockSize = 16
+blockSize = 4
 
 extraPixels = blockSize - (img.size % blockSize)
 img = np.pad(img, (0, extraPixels), 'constant', constant_values=(0))
@@ -49,15 +49,16 @@ for pix in img:
     else:
         probability[pix] = 1
 
-for p in probability:
-    probability[p] /= len(img)
-
 sortedProbability = {}
 for shade in range(256):
     if shade in probability.keys():
         sortedProbability[shade] = probability[shade]
 
 probability = sortedProbability
+
+for p in probability:
+    probability[p] /= len(img)
+
 
 probabilityVector = []
 
@@ -68,8 +69,6 @@ for shade in range(256):
         probabilityVector.append(0)
 
 probabilityVector = np.array(probabilityVector)
-
-
 tags = np.array(arith_coding(img, blockSize, probability))
 
 tags.tofile('tags.dat')
