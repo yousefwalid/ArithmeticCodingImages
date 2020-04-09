@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import time
 import pickle
 
 
@@ -36,7 +37,7 @@ def arith_coding(fileVector, blockSize, probability):
         u = 1.0
         tag = ''
         blockNum = 0
-        c = 0
+        #c = 0
         while (blockNum < blockSize):
             if(l >= 0 and u < 0.5):
                 l = 2 * l
@@ -77,7 +78,22 @@ def arith_coding(fileVector, blockSize, probability):
     return tags
 
 
-img = cv2.imread('me.jpg', cv2.IMREAD_GRAYSCALE)
+def bitstring_to_bytes(s):
+    # pad s to make it divisble by 8
+    numBits = 8 - len(s) % 8
+    s += ('0' * numBits)
+    return bytes(int(s[i: i + 8], 2)
+                 for i in range(0, len(s), 8))  # convert s to bytes
+
+
+def encodeTags(tags):
+    bytesArray = []
+    for tag in tags:
+        bytesArray.append(bitstring_to_bytes(tag))
+    return bytesArray
+
+
+img = cv2.imread('test2.jpg', cv2.IMREAD_GRAYSCALE)
 
 dimensions = np.array([img.shape[0], img.shape[1]])  # height x width
 
@@ -115,15 +131,17 @@ for shade in range(256):
 
 probabilityVector = np.array(probabilityVector, dtype=float)
 
-# tags = np.array(arith_coding(img, blockSize, sortedProbability),
-#                 dtype=float)
+start = time.process_time()
 
 tags = arith_coding(img, blockSize, sortedProbability)
 
-with open("test.txt", "wb") as fp:  # Pickling
-    pickle.dump(tags, fp)
+print(str(time.process_time() - start) + ' s')
 
-# tags.tofile('tags.dat')
-probabilityVector.tofile('probabilities.dat')
-dimensions.tofile('dimensions.dat')
-np.array([blockSize]).tofile('blocksize.dat')
+tagsBytesArray = encodeTags(tags)
+
+with open('./data/tags.dat', 'wb') as x:
+    pickle.dump(tagsBytesArray, x)
+
+probabilityVector.tofile('./data/probabilities.dat')
+dimensions.tofile('./data/dimensions.dat')
+np.array([blockSize]).tofile('./data/blocksize.dat')

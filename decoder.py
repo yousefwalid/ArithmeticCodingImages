@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import bisect
 import pickle
+import time
 
 
 def convertBitStringToDecimal(bitString):
@@ -25,12 +26,15 @@ def arithmetic_decode(tags, blockSize, probability, streamLength):
             probability[i-1]  # 1 based cumulative sum
 
     cumulative_sum[numSymbols] = 1.0
+    tagIdx = 0
     for tag in tags:
         l = 0.0
         u = 1.0
+        tagIdx += 1
         blockNum = 0
+        print(tagIdx)
         while(blockNum < blockSize):
-            if(l >= 0 and u < 0.5):
+            if(l >= 0.0 and u < 0.5):
                 l = 2 * l
                 u = 2 * u
                 tag = tag[1:]
@@ -51,14 +55,16 @@ def arithmetic_decode(tags, blockSize, probability, streamLength):
                 t = convertBitStringToDecimal(tag)
                 delta = u-l
                 new_t = (t-l)/delta
-                letterIdx = 0
+                letterIdx = numSymbols-1
 
-                letterIdx = bisect.bisect_left(cumulative_sum, new_t)-1
+                # letterIdx = bisect.bisect_right(
+                #     cumulative_sum, new_t)-1
 
-                # for i in range(len(cumulative_sum)-1):
-                #     if(new_t >= cumulative_sum[i] and new_t < cumulative_sum[i+1]):
-                #         letterIdx = i
-                #         break
+                for i in range(len(cumulative_sum)-1):
+                    if(new_t >= cumulative_sum[i] and new_t < cumulative_sum[i+1]):
+                        letterIdx = i
+                        break
+
                 outputSymbols.append(letterIdx)
                 new_l = l + delta * cumulative_sum[letterIdx]
                 new_u = min(l + delta * cumulative_sum[letterIdx+1], 1.0)
@@ -69,13 +75,28 @@ def arithmetic_decode(tags, blockSize, probability, streamLength):
     return outputSymbols
 
 
-# tags = np.fromfile('tags.dat', dtype=float)
-with open("test.txt", "rb") as fp:   # Unpickling
-    tags = pickle.load(fp)
+def decodeTags(tags):
+    tagStringArray = []
+    for tag in tags:
+        tagString = ''
+        for byte in tag:
+            byteString = ''
+            for i in range(8):
+                byteString += chr((byte & 1) + ord('0'))
+                byte >>= 1
+            tagString += byteString[::-1]
+        tagStringArray.append(tagString)
+    return tagStringArray
 
-dimensions = np.fromfile('dimensions.dat', dtype=int)
-probabilityVector = np.fromfile('probabilities.dat', dtype=float)
-blockSize = (np.fromfile('blocksize.dat', dtype=int)[0])
+
+with open('./data/tags.dat', 'rb') as x:
+    tagsBytesArray = pickle.load(x)
+
+tags = decodeTags(tagsBytesArray)
+
+dimensions = np.fromfile('./data/dimensions.dat', dtype=int)
+probabilityVector = np.fromfile('./data/probabilities.dat', dtype=float)
+blockSize = (np.fromfile('./data/blocksize.dat', dtype=int)[0])
 
 streamLength = len(tags) * blockSize
 
@@ -87,8 +108,12 @@ for i in range(len(probabilityVector)):
         indices[len(probability)] = i
         probability.append(probabilityVector[i])
 
+start = time.process_time()
+
 original_stream_indicies = arithmetic_decode(
     tags, blockSize, probability, streamLength)
+
+print(str(time.process_time() - start) + ' s')
 
 original_stream = []
 
