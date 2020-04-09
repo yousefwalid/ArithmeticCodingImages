@@ -1,6 +1,48 @@
 import numpy as np
 import cv2
-from decimal import *
+import pickle
+
+# def arith_coding(fileVector, blockSize, probability):
+#     cumulative_p = {}
+#     cumulative_p_prev = {}
+#     tags = []
+
+#     cum_sum = 0
+#     for p in probability:
+#         cumulative_p[p] = (probability[p] + cum_sum)
+#         cumulative_p_prev[p] = cum_sum
+#         cum_sum += probability[p]
+
+#     idx = 0
+#     while(idx < len(fileVector)):
+#         l = 0
+#         u = 1
+#         for blockNum in range(blockSize):
+#             letter = fileVector[idx]
+#             new_l = l + (u-l) * cumulative_p_prev[letter]
+#             new_u = l + (u-l) * cumulative_p[letter]
+#             u = new_u
+#             l = new_l
+#             idx += 1
+#         tags.append((u+l)/2)
+
+#     return tags
+
+
+def get_binaryStr_within_range(l, u):
+    i = 1
+    num = 0
+    binaryStr = ''
+    while (not(num >= l and num < u)):
+        decimal_pnt = 2**(-i)
+        new_decimal = num + decimal_pnt
+        if(new_decimal > u):
+            binaryStr += '0'
+        else:
+            binaryStr += '1'
+            num = new_decimal
+        i += 1
+    return binaryStr
 
 
 def arith_coding(fileVector, blockSize, probability):
@@ -8,34 +50,66 @@ def arith_coding(fileVector, blockSize, probability):
     cumulative_p_prev = {}
     tags = []
 
-    cum_sum = 0
+    last_prob = 0
     for p in probability:
-        cumulative_p[p] = (probability[p] + cum_sum)
-        cumulative_p_prev[p] = cum_sum
-        cum_sum += probability[p]
+        cumulative_p_prev[p] = last_prob
+        cumulative_p[p] = last_prob + probability[p]
+        last_prob = cumulative_p[p]
 
     idx = 0
     while(idx < len(fileVector)):
-        l = 0
-        u = 1
-        for blockNum in range(blockSize):
-            letter = fileVector[idx]
-            new_l = l + (u-l) * cumulative_p_prev[letter]
-            new_u = l + (u-l) * cumulative_p[letter]
-            u = new_u
-            l = new_l
-            idx += 1
-        tags.append((u+l)/2)
-
+        l = 0.0
+        u = 1.0
+        tag = ''
+        blockNum = 0
+        print(idx)
+        c = 0
+        while (blockNum < blockSize):
+            if(l >= 0 and u < 0.5):
+                l = 2 * l
+                u = 2 * u
+                tag += '0'
+                for ic in range(c):
+                    tag += '1'
+                c = 0
+            elif (l >= 0.5 and u <= 1.1):
+                l = 2 * (l - 0.5)
+                u = 2 * (u - 0.5)
+                tag += '1'
+                for ic in range(c):
+                    tag += '0'
+                c = 0
+            # elif(l >= 0.25 and u < 0.75):
+            #     l = 2 * (l - 0.25)
+            #     u = 2 * (u - 0.25)
+            #     c += 1
+            else:
+                if(blockNum == blockSize-1):
+                    letter = fileVector[idx]
+                    new_l = l + (u-l) * cumulative_p_prev[letter]
+                    new_u = l + (u-l) * cumulative_p[letter]
+                    extra_bits = get_binaryStr_within_range(new_l, new_u)
+                    tag += extra_bits
+                else:
+                    letter = fileVector[idx]
+                    delta = u-l
+                    new_l = l + delta * cumulative_p_prev[letter]
+                    new_u = min(
+                        l + delta * cumulative_p[letter], 1.0)
+                    l = new_l
+                    u = new_u
+                idx += 1
+                blockNum += 1
+        tags.append(tag)
     return tags
 
 
-img = cv2.imread('test.jpg', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('forest.jpg', cv2.IMREAD_GRAYSCALE)
 
 dimensions = np.array([img.shape[0], img.shape[1]])  # height x width
 
 img = img.flatten()
-blockSize = 16
+blockSize = 4
 
 extraPixels = blockSize - (img.size % blockSize)
 img = np.pad(img, (0, extraPixels), 'constant', constant_values=(0))
@@ -56,7 +130,7 @@ for shade in range(256):
 probability = sortedProbability
 
 for p in probability:
-    probability[p] /= Decimal(len(img))
+    probability[p] /= len(img)
 
 probabilityVector = []
 
@@ -68,10 +142,15 @@ for shade in range(256):
 
 probabilityVector = np.array(probabilityVector, dtype=float)
 
-tags = np.array(arith_coding(img, blockSize, probability),
-                dtype=float)
+# tags = np.array(arith_coding(img, blockSize, sortedProbability),
+#                 dtype=float)
 
-tags.tofile('tags.dat')
+tags = arith_coding(img, blockSize, sortedProbability)
+
+with open("test.txt", "wb") as fp:  # Pickling
+    pickle.dump(tags, fp)
+
+    # tags.tofile('tags.dat')
 probabilityVector.tofile('probabilities.dat')
 dimensions.tofile('dimensions.dat')
 np.array([blockSize]).tofile('blocksize.dat')
