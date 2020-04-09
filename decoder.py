@@ -67,15 +67,16 @@ def arithmetic_decode(tags, blockSize, probability, streamLength):
                 u = 2*u - 1
                 tag = tag[1:]
                 t = convertBitStringToDecimal(tag)
-            # elif(l >= 0.25 and u < 0.75):
-            #     l = 2 * (l - 0.25)
-            #     u = 2 * (u - 0.25)
-            #     tag = tag[2:]
-            #     if(tag[:2] == '01'):
-            #         tag = '0' + tag
-            #     else:
-            #         tag = '1' + tag
-            #     t = convertBitStringToDecimal(tag)
+            elif(l >= 0.25 and u < 0.75):
+                l = 2 * (l - 0.25)
+                u = 2 * (u - 0.25)
+                if(tag[:2] == '01'):
+                    tag = tag[2:]
+                    tag = '0' + tag
+                else:
+                    tag = tag[2:]
+                    tag = '1' + tag
+                t = convertBitStringToDecimal(tag)
             else:
                 delta = (u-l)
                 new_t = (t-l)/delta

@@ -79,10 +79,10 @@ def arith_coding(fileVector, blockSize, probability):
                 for ic in range(c):
                     tag += '0'
                 c = 0
-            # elif(l >= 0.25 and u < 0.75):
-            #     l = 2 * (l - 0.25)
-            #     u = 2 * (u - 0.25)
-            #     c += 1
+            elif(l >= 0.25 and u < 0.75):
+                l = 2 * (l - 0.25)
+                u = 2 * (u - 0.25)
+                c += 1
             else:
                 if(blockNum == blockSize-1):
                     letter = fileVector[idx]
@@ -109,7 +109,7 @@ img = cv2.imread('forest.jpg', cv2.IMREAD_GRAYSCALE)
 dimensions = np.array([img.shape[0], img.shape[1]])  # height x width
 
 img = img.flatten()
-blockSize = 4
+blockSize = 16
 
 extraPixels = blockSize - (img.size % blockSize)
 img = np.pad(img, (0, extraPixels), 'constant', constant_values=(0))
