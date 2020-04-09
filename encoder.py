@@ -2,32 +2,6 @@ import numpy as np
 import cv2
 import pickle
 
-# def arith_coding(fileVector, blockSize, probability):
-#     cumulative_p = {}
-#     cumulative_p_prev = {}
-#     tags = []
-
-#     cum_sum = 0
-#     for p in probability:
-#         cumulative_p[p] = (probability[p] + cum_sum)
-#         cumulative_p_prev[p] = cum_sum
-#         cum_sum += probability[p]
-
-#     idx = 0
-#     while(idx < len(fileVector)):
-#         l = 0
-#         u = 1
-#         for blockNum in range(blockSize):
-#             letter = fileVector[idx]
-#             new_l = l + (u-l) * cumulative_p_prev[letter]
-#             new_u = l + (u-l) * cumulative_p[letter]
-#             u = new_u
-#             l = new_l
-#             idx += 1
-#         tags.append((u+l)/2)
-
-#     return tags
-
 
 def get_binaryStr_within_range(l, u):
     i = 1
@@ -62,27 +36,26 @@ def arith_coding(fileVector, blockSize, probability):
         u = 1.0
         tag = ''
         blockNum = 0
-        print(idx)
         c = 0
         while (blockNum < blockSize):
             if(l >= 0 and u < 0.5):
                 l = 2 * l
                 u = 2 * u
                 tag += '0'
-                for ic in range(c):
-                    tag += '1'
-                c = 0
+                # for ic in range(c):
+                #     tag += '1'
+                # c = 0
             elif (l >= 0.5 and u <= 1.1):
-                l = 2 * (l - 0.5)
-                u = 2 * (u - 0.5)
+                l = 2 * l - 1
+                u = 2 * u - 1
                 tag += '1'
-                for ic in range(c):
-                    tag += '0'
-                c = 0
-            elif(l >= 0.25 and u < 0.75):
-                l = 2 * (l - 0.25)
-                u = 2 * (u - 0.25)
-                c += 1
+                # for ic in range(c):
+                #     tag += '0'
+                # c = 0
+            # elif(l >= 0.25 and u < 0.75):
+            #     l = 2 * l - 0.5
+            #     u = 2 * u - 0.5
+            #     c += 1
             else:
                 if(blockNum == blockSize-1):
                     letter = fileVector[idx]
@@ -104,7 +77,7 @@ def arith_coding(fileVector, blockSize, probability):
     return tags
 
 
-img = cv2.imread('forest.jpg', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('me.jpg', cv2.IMREAD_GRAYSCALE)
 
 dimensions = np.array([img.shape[0], img.shape[1]])  # height x width
 
@@ -150,7 +123,7 @@ tags = arith_coding(img, blockSize, sortedProbability)
 with open("test.txt", "wb") as fp:  # Pickling
     pickle.dump(tags, fp)
 
-    # tags.tofile('tags.dat')
+# tags.tofile('tags.dat')
 probabilityVector.tofile('probabilities.dat')
 dimensions.tofile('dimensions.dat')
 np.array([blockSize]).tofile('blocksize.dat')
