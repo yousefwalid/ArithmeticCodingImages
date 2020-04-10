@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import time
 import pickle
+import sys
 
 
 def get_binaryStr_within_range(l, u):
@@ -38,7 +39,7 @@ def arith_coding(fileVector, blockSize, probability):
         tag = ''
         blockNum = 0
         c = 0
-        while (blockNum < blockSize):
+        while (blockNum <= blockSize):
             if(l >= 0 and u < 0.5):
                 l = 2 * l
                 u = 2 * u
@@ -58,20 +59,18 @@ def arith_coding(fileVector, blockSize, probability):
                 u = 2 * u - 0.5
                 c += 1
             else:
-                if(blockNum == blockSize-1):
-                    letter = fileVector[idx]
-                    new_l = l + (u-l) * cumulative_p_prev[letter]
-                    new_u = l + (u-l) * cumulative_p[letter]
-                    extra_bits = get_binaryStr_within_range(new_l, new_u)
+                if(blockNum == blockSize):
+                    extra_bits = get_binaryStr_within_range(l, u)
                     tag += extra_bits
-                else:
-                    letter = fileVector[idx]
-                    delta = u-l
-                    new_l = l + delta * cumulative_p_prev[letter]
-                    new_u = min(
-                        l + delta * cumulative_p[letter], 1.0)
-                    l = new_l
-                    u = new_u
+                    break
+                letter = fileVector[idx]
+                delta = u-l
+                new_l = l + delta * cumulative_p_prev[letter]
+                new_u = min(
+                    l + delta * cumulative_p[letter], 1.0)
+
+                l = new_l
+                u = new_u
                 idx += 1
                 blockNum += 1
         tags.append(tag)
@@ -93,7 +92,11 @@ def encodeTags(tags):
     return bytesArray
 
 
-img = cv2.imread('shoma32.jpg', cv2.IMREAD_GRAYSCALE)
+imgName = 'test.jpg'
+
+if(len(sys.argv) == 2):
+    imgName = sys.argv[1]
+img = cv2.imread(imgName, cv2.IMREAD_GRAYSCALE)
 
 dimensions = np.array([img.shape[0], img.shape[1]])  # height x width
 

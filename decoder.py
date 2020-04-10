@@ -14,7 +14,7 @@ def convertBitStringToDecimal(bitString):
     return num
 
 
-def arithmetic_decode(tags, blockSize, probability, streamLength):
+def arithmetic_decode(tags, blockSize, probability):
     numSymbols = len(probability)
 
     outputSymbols = []
@@ -26,13 +26,10 @@ def arithmetic_decode(tags, blockSize, probability, streamLength):
             probability[i-1]  # 1 based cumulative sum
 
     cumulative_sum[numSymbols] = 1.0
-    tagIdx = 0
     for tag in tags:
         l = 0.0
         u = 1.0
-        tagIdx += 1
         blockNum = 0
-        # print(tagIdx)
         while(blockNum < blockSize):
             if(l >= 0.0 and u < 0.5):
                 l = 2 * l
@@ -54,7 +51,6 @@ def arithmetic_decode(tags, blockSize, probability, streamLength):
                 else:
                     print('error')
             else:
-
                 t = convertBitStringToDecimal(tag)
                 delta = u-l
                 new_t = (t-l)/delta
@@ -114,7 +110,7 @@ for i in range(len(probabilityVector)):
 start = time.process_time()
 
 original_stream_indicies = arithmetic_decode(
-    tags, blockSize, probability, streamLength)
+    tags, blockSize, probability)
 
 print(str(time.process_time() - start) + ' s')
 
