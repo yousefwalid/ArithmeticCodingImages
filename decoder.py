@@ -32,26 +32,29 @@ def arithmetic_decode(tags, blockSize, probability, streamLength):
         u = 1.0
         tagIdx += 1
         blockNum = 0
-        print(tagIdx)
+        # print(tagIdx)
         while(blockNum < blockSize):
             if(l >= 0.0 and u < 0.5):
                 l = 2 * l
                 u = 2 * u
                 tag = tag[1:]
-            elif(l >= 0.5 and u <= 1.1):
+            elif(l >= 0.5 and u <= 1.0):
                 l = 2 * l - 1
                 u = 2 * u - 1
                 tag = tag[1:]
-            # elif(l >= 0.25 and u < 0.75):
-            #     l = 2 * l - 0.5
-            #     u = 2 * u - 0.5
-            #     if(tag[:2] == '01'):
-            #         tag = tag[2:]
-            #         tag = '0' + tag
-            #     else:
-            #         tag = tag[2:]
-            #         tag = '1' + tag
+            elif(l >= 0.25 and u < 0.75):
+                l = 2 * l - 0.5
+                u = 2 * u - 0.5
+                if(tag[0] == '0'):
+                    tag = tag[2:]
+                    tag = '0' + tag
+                elif(tag[0] == '1'):
+                    tag = tag[2:]
+                    tag = '1' + tag
+                else:
+                    print('error')
             else:
+
                 t = convertBitStringToDecimal(tag)
                 delta = u-l
                 new_t = (t-l)/delta

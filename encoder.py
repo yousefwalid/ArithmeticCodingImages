@@ -37,26 +37,26 @@ def arith_coding(fileVector, blockSize, probability):
         u = 1.0
         tag = ''
         blockNum = 0
-        #c = 0
+        c = 0
         while (blockNum < blockSize):
             if(l >= 0 and u < 0.5):
                 l = 2 * l
                 u = 2 * u
                 tag += '0'
-                # for ic in range(c):
-                #     tag += '1'
-                # c = 0
-            elif (l >= 0.5 and u <= 1.1):
+                for ic in range(c):
+                    tag += '1'
+                c = 0
+            elif (l >= 0.5 and u <= 1.0):
                 l = 2 * l - 1
                 u = 2 * u - 1
                 tag += '1'
-                # for ic in range(c):
-                #     tag += '0'
-                # c = 0
-            # elif(l >= 0.25 and u < 0.75):
-            #     l = 2 * l - 0.5
-            #     u = 2 * u - 0.5
-            #     c += 1
+                for ic in range(c):
+                    tag += '0'
+                c = 0
+            elif(l >= 0.25 and u < 0.75):
+                l = 2 * l - 0.5
+                u = 2 * u - 0.5
+                c += 1
             else:
                 if(blockNum == blockSize-1):
                     letter = fileVector[idx]
@@ -93,7 +93,7 @@ def encodeTags(tags):
     return bytesArray
 
 
-img = cv2.imread('test2.jpg', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('shoma32.jpg', cv2.IMREAD_GRAYSCALE)
 
 dimensions = np.array([img.shape[0], img.shape[1]])  # height x width
 
