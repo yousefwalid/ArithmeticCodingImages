@@ -94,8 +94,11 @@ def encodeTags(tags):
 
 imgName = 'test.jpg'
 
-if(len(sys.argv) == 2):
+if(len(sys.argv) >= 2):
     imgName = sys.argv[1]
+if(len(sys.argv) >= 3):
+    blockSize = sys.argv[2]
+    
 img = cv2.imread(imgName, cv2.IMREAD_GRAYSCALE)
 
 dimensions = np.array([img.shape[0], img.shape[1]])  # height x width
