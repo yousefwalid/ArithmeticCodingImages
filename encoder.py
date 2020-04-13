@@ -47,7 +47,7 @@ def arith_coding(fileVector, blockSize, probability):
                 for ic in range(c):
                     tag += '1'
                 c = 0
-            elif (l >= 0.5 and u <= 1.0):
+            elif (l >= 0.5 and u <= 1.1):
                 l = 2 * l - 1
                 u = 2 * u - 1
                 tag += '1'
@@ -92,19 +92,14 @@ def encodeTags(tags):
     return bytesArray
 
 
-imgName = 'test.jpg'
+imgName = input("Enter the image file name: ")
+blockSize = int(input("Enter the block size: "))
 
-if(len(sys.argv) >= 2):
-    imgName = sys.argv[1]
-if(len(sys.argv) >= 3):
-    blockSize = sys.argv[2]
-    
 img = cv2.imread(imgName, cv2.IMREAD_GRAYSCALE)
 
 dimensions = np.array([img.shape[0], img.shape[1]])  # height x width
 
 img = img.flatten()
-blockSize = 16
 
 extraPixels = blockSize - (img.size % blockSize)
 img = np.pad(img, (0, extraPixels), 'constant', constant_values=(0))

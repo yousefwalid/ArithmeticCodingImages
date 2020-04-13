@@ -26,6 +26,7 @@ def arithmetic_decode(tags, blockSize, probability):
             probability[i-1]  # 1 based cumulative sum
 
     cumulative_sum[numSymbols] = 1.0
+
     for tag in tags:
         l = 0.0
         u = 1.0
@@ -35,7 +36,7 @@ def arithmetic_decode(tags, blockSize, probability):
                 l = 2 * l
                 u = 2 * u
                 tag = tag[1:]
-            elif(l >= 0.5 and u <= 1.0):
+            elif(l >= 0.5 and u <= 1.1):
                 l = 2 * l - 1
                 u = 2 * u - 1
                 tag = tag[1:]
@@ -52,19 +53,20 @@ def arithmetic_decode(tags, blockSize, probability):
                 t = convertBitStringToDecimal(tag)
                 delta = u-l
                 new_t = (t-l)/delta
-                # letterIdx = numSymbols-1
+                letterIdx = numSymbols - 1
 
-                letterIdx = bisect.bisect_right(
-                    cumulative_sum, new_t)-1
+                # letterIdx = bisect.bisect_right(
+                #     cumulative_sum, new_t)-1
 
-                # for i in range(len(cumulative_sum)-1):
-                #     if(new_t >= cumulative_sum[i] and new_t < cumulative_sum[i+1]):
-                #         letterIdx = i
-                #         break
+                for i in range(len(cumulative_sum)-1):
+                    if(new_t >= cumulative_sum[i] and new_t <= cumulative_sum[i+1]):
+                        letterIdx = i
+                        break
 
                 outputSymbols.append(letterIdx)
                 new_l = l + delta * cumulative_sum[letterIdx]
-                new_u = l + delta * cumulative_sum[letterIdx+1]
+                new_u = min(1.0, l +
+                            delta * cumulative_sum[letterIdx+1])
                 l = new_l
                 u = new_u
                 blockNum += 1
